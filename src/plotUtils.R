@@ -1,4 +1,24 @@
-plotPath <- function(x, y, size = 1, col = 'gray', pch = 1, main = '', new.plot = T, xlim = NULL, ylim = NULL) {
+plotGrid <- function(nrow, ncol) {
+  # Calling graphics::par function to display plots in a grid format
+  # Args:
+  #   nrow: Number of rows in grid
+  #   ncol: Number of columns in grid
+  par(mfrow = c(nrow, ncol))
+}
+
+rangePadded <- function(data, padding.fixed=NULL, padding.ratio = 0.1) {
+  # Returns a range extended by the specified padding 
+  # Args:
+  #   data: Vector of values
+  #   padding.fixed: Amount of padding expressed as a fixed value
+  #   padding.ratio: Amount of padding expressed as a ratio, ignore if padding.fixed is not null
+  if (is.null(padding.fixed)) {
+    padding.fixed = (max(data) - min(data)) * padding.ratio
+  }
+  return (range(data) + c(-1 * padding.fixed, padding.fixed))
+}
+
+plotPath <- function(x, y, size = 1, col = 'gray', pch = 1, main = '', new.plot = T, xlim = NULL, ylim = NULL, arrows=T, lwd=1) {
   # Visualise the input 2D points using the built-in graphics::plot function, connect the points using arrows
   # Args:
   #   x: a vector containing X coordinate of points
@@ -9,43 +29,51 @@ plotPath <- function(x, y, size = 1, col = 'gray', pch = 1, main = '', new.plot 
   #   main: Title of plot. Default is ''.
   #   new.plot: Create a new plot of TRUE.  Default is TRUE.
   #   xlim: X range of plot.  Default is NULL, ignore if newPlot is FALSE.
-  #   ylim: Y range of plot.  Default is NULL, ignore if newPlot is FALES.
+  #   ylim: Y range of plot.  Default is NULL, ignore if newPlot is FALSE.
+  #   arrows: Show arrows in path to indicate direction.  Default is TRUE
+  #   lwd: Line width.  Default is 1.
   isNA <- !is.na(x) & !is.na(y)
   x <- x[isNA]
   y <- y[isNA]
-  if (new.plot) {
-    plot(x, y, col = col, xlim = xlim, ylim = ylim, cex = size, pch = pch, main = main)
-  } else {
-    points(x, y, col = col, pch = pch, cex = size)
+  if (is.null(xlim)) {
+    xlim = rangePadded(x)
   }
-  lines(x, y, col = col)
-  x0 <- c(NA, x[1:length(x)-1])
-  y0 <- c(NA, y[1:length(y)-1])
-  arrows(x0, y0, x, y, col = col, cex = size, code = 2, length = size/10)
+  if (is.null(ylim)) {
+    ylim = rangePadded(y)
+  }
+  if (new.plot) {
+    plot(c(), c(), xlab='x', ylab = 'y', xlim = xlim, ylim = ylim, main = main)
+  }
+  points(x, y, col = col, pch = pch, cex = size)
+  lines(x, y, col = col, lwd=lwd)
+  if (arrows) {
+    x0 <- c(NA, x[1:length(x)-1])
+    y0 <- c(NA, y[1:length(y)-1])
+    arrows(x0, y0, x, y, col = col, cex = size, code = 2, length = size/10, lwd=lwd)
+  }
 }
 
-plotGrid <- function(nrow, ncol) {
-  # Calling graphics::par function to display plots in a grid format
+plotLightPath <- function(x, y, col = 'gray', main = '', new.plot = T, xlim = NULL, ylim = NULL) {
+  # Visualise the input 2D points using the built-in graphics::plot function, connect the points with a translucent path
   # Args:
-  #   nrow: Number of rows in grid
-  #   ncol: Number of columns in grid
-  par(mfrow = c(nrow, ncol))
-}
-
-rangePadded <- function(data, padding.ratio = 0.1) {
-  # Returns a range extended by the specified padding ratio (i.e. padding = (max(data) - min(data)) * padding.ratio)
-  # Args:
-  #   data: Vector of values
-  #   padding.ratio: Amount of padding expressed as a ratio
-  padding = (max(data) - min(data)) * padding.ratio
-  return (range(data) + c(-1 * padding, padding))
+  #   x: a vector containing X coordinate of points
+  #   y: a vector containing Y coordinate of points
+  #   col: Colour of points. Default is 'gray'.
+  #   main: Title of plot. Default is ''.
+  #   new.plot: Create a new plot of TRUE.  Default is TRUE.
+  #   xlim: X range of plot.  Default is NULL, ignore if newPlot is FALSE.
+  #   ylim: Y range of plot.  Default is NULL, ignore if newPlot is FALSE.
+  plotPath(x, y, col=col, size=0, main = main, new.plot=new.plot, xlim=xlim, ylim=ylim, arrows=F, lwd=0.3)
 }
 
 examples <- function() {
     p <- data.frame(x = c(1,2,3), y = c(1,2,1))
 
     # plotPath & rangePadded example
-    plotPath(p$x, p$y, size = 3, main = "Some path", xlim = rangePadded(p$x), ylim = rangePadded(p$y))
+    plotPath(p$x, p$y, size = 3, main = "Some path", xlim = rangePadded(p$x), ylim = rangePadded(p$y, 1))
+    
+    #plotLightPath example
+    plotLightPath(p$x + 0.2, p$y, new.plot=F)
     
     # plotGrid example
     plotGrid(1,2)
