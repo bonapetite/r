@@ -24,6 +24,22 @@ dbscan <- function(points.x, points.y, points.time, location.eps, time.eps, min.
   points$id = seq(1, N)
   points$cluster = 0
   cluster = 1
+  
+  na.count = length(which(is.na(points.x)))
+  if (na.count > 0) {
+    stop (paste(na.count), ' points has NA as x coordinate')
+    return
+  }   
+  na.count = length(which(is.na(points.y)))
+  if (na.count > 0) {
+    stop (paste(na.count), ' points has NA as y coordinate')
+    return
+  }   
+  na.count = length(which(is.na(points.time)))
+  if (na.count > 0) {
+    stop (paste(na.count), ' points has NA as time')
+    return
+  } 
  
   if (debug) {
     print(paste('Processing', N, 'points', sep=' '))
@@ -64,12 +80,12 @@ dbscan <- function(points.x, points.y, points.time, location.eps, time.eps, min.
       print(table(points[in.cluster, ]$cluster))
     }
   }
-  points$clusters[!in.cluster] = noise.cluster
+  points$cluster[!in.cluster] = noise.cluster
   return (points$cluster)
 }
 
 neighbourhood <- function(points, p, location.eps, time.eps, min.pts) {
-   scale = exp(abs(points$time - p$time)/time.eps)
-   points$dist = sqrt((p$x - points$x)^2 + (p$y - points$y)^2) * scale
-   return (points$dist <= location.eps)
+   scale = abs(points$time - p$time)/time.eps
+   points$dist = sqrt((p$x - points$x)^2 + (p$y - points$y)^2) #* scale
+   return (points$dist <= location.eps & abs(points$time - p$time) <= time.eps)
  }

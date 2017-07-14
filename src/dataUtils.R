@@ -1,6 +1,6 @@
-require(data.table)
 
 getPrevValuesByGroup <- function(data, group) {
+  require(data.table)
   # Get a vector that contains the value of the previous row of the same group
   # Args:
   #   data: Vector of values
@@ -20,6 +20,30 @@ lagPadded <- function(data, k=1) {
   return (c(rep(NA, k), head(data, length(data)-k)))
 }
 
+# Interpolate missing values. Leave as NA if gap between data is larger than max.gap
+# Args:
+#   x: Vector of values
+#   max.gap: Leave as NA if gap between data is larger than max.gap
+interpolate <- function(x, max.gap=NULL) {
+  require(zoo)
+  if (!is.null(max.gap)) {
+    return (na.approx(x, maxgap=max.gap)) 
+  } else {
+    return (na.approx(x))
+  }
+}
+
+# Return a vector containing the logical of whether each row is within the specified range c(x.min, x.max). 
+# If padding is specified, the range to check will be c(x.min-padding, x.max+padding)
+# Args:
+#   x: Vector of values
+#   x.min: Minimum value of the range
+#   x.max: Maximum value of the range
+#   padding: Padding to add to the range.  Default is 0.
+range.filter <- function(x, x.min, x.max, padding=0) {
+  return (!is.na(x) & !is.null(x) & (x >= x.min-padding) & (x <= x.max+padding))
+}
+
 examples <- function() {
   
   # getPrevValuesByGroup example
@@ -36,5 +60,22 @@ examples <- function() {
   
   print(lagPadded(person.data$value, 2))
   # NA NA 10 20 30 40
+  
+  interpolate(c(1, 2, NA, NA, 5, 6))
+  # 1 2 3 4 5 6
+  interpolate(c(1, 2, NA, NA, 5, 6), max.gap=1)
+  # 1 2 NA NA 5 6
+  
+  person.data[range.filter(person.data$value, 30, 40), ]
+  # name value
+  # john    30
+  # john    40
+  
+  person.data[range.filter(person.data$value, 30, 40, padding=10), ]
+  # name value
+  # amy    20
+  # john    30
+  # john    40
+  # amy    50
 }
 
