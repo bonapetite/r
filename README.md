@@ -5,7 +5,7 @@ This repository contains some handy R codes I have written.  These are organised
 
 - **plotUtils.R** Functions related to plotting graphs that use the built-in graphics package for plotting.  For example, a single function call for plotting a path:
 
-<img src="https://user-images.githubusercontent.com/13400791/26926538-7d726d5e-4c91-11e7-8173-d2fddc3d081b.png" width="600px"/>
+<img src="https://user-images.githubusercontent.com/13400791/27319373-721dd884-55d4-11e7-93e8-183f8a5298dc.png" width="600px"/>
 
 - **dataUtils.R** For manipulating data stored in data frames or data tables (e.g. For each event in the sorted dataset, retrieve the previous time value in the same group to work out the time difference since the last event)
 
