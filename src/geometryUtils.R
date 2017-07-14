@@ -10,7 +10,6 @@ distance <- function(x1, y1, x2, y2) {
 }
 
 examples <- function() {
-  
   distance(1, 1, 2, 2)
   distance(c(1,2), c(1,1), c(2,2), c(2, 3))
   distance(c(NA,2), c(1,1), c(2,2), c(2, 3))
