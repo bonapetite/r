@@ -53,6 +53,46 @@ plotPath <- function(x, y, size = 1, col = 'gray', pch = 1, main = '', new.plot 
   }
 }
 
+bubbleSize <- function(x, min.size, max.size, max.size.x = NULL) {
+  # Return a value scaled based on the value range.  This is useful to plot bubbles where the size
+  # of a bubble depends on the value of the point
+  # Args:
+  #   x: a vector of values
+  #   min.size: minimum size.  Should be greater than 0
+  #   max.size: Size of points.  Default is 1.
+  #   max.size.x: This value allows to set your own range for scaling.  
+  #   Instead of scaling x by the range c(min(x), max(x)), use the range c(min(x), max.size.x). 
+  #   Hence, for all the points with value > max.size.x, the size will be max.size. 
+  x.range = range(x)
+  size.range = range(min.size, max.size)
+  if (!is.null(max.size.x)) {
+    x.range[2] = max.size.x
+  }
+  size = ((x - x.range[1])/(diff(x.range)))*diff(size.range) + size.range[1]
+  size[size > max.size] = max.size
+  return (size)
+}
+
+plotArrow <- function(origin.x, origin.y, angle, unit='radian', angle.north=0, arrow.size=1, colour='black', lwd=1) {
+  # Plot arrows given angles of the arrow vectors.
+  # Args:
+  #   origin.x: A vector containing x coordinates of arrow origins
+  #   origin.y: A vector containing y coordinates of arrow origins
+  #   angle: Angles of arrow vectors
+  #   unit: Angle unit, can be 'degree' or 'radian'.  Default is 'radian'
+  #   angle.north: Angle for north direction.  Default is 0
+  #   arrow.size: Size of arrow.  Default is 1 
+  #   colour: Colour of arrow.  Default is 'black' 
+  #   lwd: Line width of arrow.  Default is 1
+  angle = angle - angle.north + 6.28/4
+  if (unit == 'degree') {
+    angle = angle*180/3.14
+  } else if (unit != 'radian') {
+    stop('Only support degree and radian.')
+  }
+  arrows(x=origin.x, y=origin.y, x1=origin.x+arrow.size*cos(angle), y1=origin.y+arrow.size*sin(angle), length=arrow.size/2, col=colour, lwd=lwd)
+}
+
 plotLightPath <- function(x, y, col = 'gray', main = '', new.plot = T, xlim = NULL, ylim = NULL) {
   # Visualise the input 2D points using the built-in graphics::plot function, connect the points with a translucent path
   # Args:
@@ -67,7 +107,7 @@ plotLightPath <- function(x, y, col = 'gray', main = '', new.plot = T, xlim = NU
 }
 
 examples <- function() {
-    p <- data.frame(x = c(1,2,3), y = c(1,2,1))
+    p <- data.frame(x = c(1,2,3), y = c(1,2,1), direction=c(0, 3.14, 4.71), value=c(1, 5, 1000))
 
     # plotPath & rangePadded example
     plotPath(p$x, p$y, size = 3, main = "Some path", xlim = rangePadded(p$x), ylim = rangePadded(p$y, 1))
@@ -75,8 +115,16 @@ examples <- function() {
     #plotLightPath example
     plotLightPath(p$x + 0.2, p$y, new.plot=F)
     
+    #bubbleSize example
+    plot(p$x, p$y, xlim=c(0, 4), ylim=c(0, 3), cex=bubbleSize(p$value, min.size = 1, max.size = 4, max.size.x = 10))
+    
     # plotGrid example
     plotGrid(1,2)
     plotPath(p$x, p$y, size = 3, main = "Some path")
     plotPath(p$x, p$y, size = 3, main = "Some path again in red", col = 'red')
+    
+    #plotArrow example
+    plotArrow(p$x, p$y, p$direction, arrow.size = 0.2)
+    text(p$x, p$y+0.2, p$value)
+    
 }
