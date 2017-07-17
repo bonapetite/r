@@ -3,9 +3,16 @@ Collection of useful R codes
 
 This repository contains some handy R codes I have written.  These are organised into individual R scripts based on functionalities:
 
-- **plotUtils.R** Functions related to plotting graphs that use the built-in graphics package for plotting.  For example, a single function call for plotting a path:
+- **plotUtils.R** Functions related to plotting graphs that use the built-in graphics package for plotting.  
+Plotting a 2D path
+<img src="https://user-images.githubusercontent.com/13400791/28256450-fd981870-6b05-11e7-96f7-79c581fd2e4f.png" width="600px"/>
 
-<img src="https://user-images.githubusercontent.com/13400791/27319373-721dd884-55d4-11e7-93e8-183f8a5298dc.png" width="600px"/>
+Plotting a 2D path with arrows to indicate headings
+<img src="https://user-images.githubusercontent.com/13400791/28256450-fd981870-6b05-11e7-96f7-79c581fd2e4f.png" width="600px"/>
+
+Plot bubbles with size scaled to provided values
+<img src="https://user-images.githubusercontent.com/13400791/28256508-80268d3a-6b06-11e7-9cc8-16a50dbd8221.png" width="600px"/>
+
 
 - **dataUtils.R** For manipulating data stored in data frames or data tables (e.g. For each event in the sorted dataset, retrieve the previous time value in the same group to work out the time difference since the last event)
 
