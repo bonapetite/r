@@ -1,10 +1,10 @@
 
 getPrevValuesByGroup <- function(data, group) {
-  require(data.table)
   # Get a vector that contains the value of the previous row of the same group
   # Args:
   #   data: Vector of values
   #   group: Group of the values
+  require(data.table)
   temp <- data.table(data = data, group = group)
   temp[, data_prev := c(temp[head(.I, 1)]$data, temp[head(.I,.N-1),]$data), by = "group"]
   temp[!duplicated(temp$group), ]$data_prev = NA
@@ -20,11 +20,11 @@ lagPadded <- function(data, k=1) {
   return (c(rep(NA, k), head(data, length(data)-k)))
 }
 
-# Interpolate missing values. Leave as NA if gap between data is larger than max.gap
-# Args:
-#   x: Vector of values
-#   max.gap: Leave as NA if gap between data is larger than max.gap
 interpolate <- function(x, max.gap=NULL) {
+  # Interpolate missing values. Leave as NA if gap between data is larger than max.gap
+  # Args:
+  #   x: Vector of values
+  #   max.gap: Leave as NA if gap between data is larger than max.gap
   require(zoo)
   if (!is.null(max.gap)) {
     return (na.approx(x, maxgap=max.gap)) 
@@ -33,15 +33,24 @@ interpolate <- function(x, max.gap=NULL) {
   }
 }
 
-# Return a vector containing the logical of whether each row is within the specified range c(x.min, x.max). 
-# If padding is specified, the range to check will be c(x.min-padding, x.max+padding)
-# Args:
-#   x: Vector of values
-#   x.min: Minimum value of the range
-#   x.max: Maximum value of the range
-#   padding: Padding to add to the range.  Default is 0.
 range.filter <- function(x, x.min, x.max, padding=0) {
+  # Return a vector containing the logical of whether each row is within the specified range c(x.min, x.max). 
+  # If padding is specified, the range to check will be c(x.min-padding, x.max+padding)
+  # Args:
+  #   x: Vector of values
+  #   x.min: Minimum value of the range
+  #   x.max: Maximum value of the range
+  #   padding: Padding to add to the range.  Default is 0.
   return (!is.na(x) & !is.null(x) & (x >= x.min-padding) & (x <= x.max+padding))
+}
+
+changeTimeZone <- function(time, original.timezone, target.timezone) {
+  # Change the timezone of the provided time.  The provided time should be in string format that can be parsed by as.POSIXct()
+  # Args:
+  #   time: Time in string format
+  #   original.timezone: Timezone of the provided time
+  #   target.timezone: Target timezone
+  return (as.POSIXct(format(as.POSIXct(time, tz=original.timezone), tz=target.timezone, usetz = T), tz=target.timezone))
 }
 
 examples <- function() {

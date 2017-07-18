@@ -12,6 +12,7 @@ rangePadded <- function(data, padding.fixed=NULL, padding.ratio = 0.1) {
   #   data: Vector of values
   #   padding.fixed: Amount of padding expressed as a fixed value
   #   padding.ratio: Amount of padding expressed as a ratio, ignore if padding.fixed is not null
+  data = data[!is.na(data)]
   if (is.null(padding.fixed)) {
     padding.fixed = (max(data) - min(data)) * padding.ratio
   }
@@ -73,7 +74,7 @@ bubbleSize <- function(x, min.size, max.size, max.size.x = NULL) {
   return (size)
 }
 
-plotArrow <- function(origin.x, origin.y, angle, unit='radian', angle.north=0, arrow.size=1, colour='black', lwd=1) {
+plotArrow <- function(origin.x, origin.y, angle, unit='radian', angle.north=0, arrow.length=1, colour='black', lwd=1) {
   # Plot arrows given angles of the arrow vectors.
   # Args:
   #   origin.x: A vector containing x coordinates of arrow origins
@@ -81,7 +82,7 @@ plotArrow <- function(origin.x, origin.y, angle, unit='radian', angle.north=0, a
   #   angle: Angles of arrow vectors
   #   unit: Angle unit, can be 'degree' or 'radian'.  Default is 'radian'
   #   angle.north: Angle for north direction.  Default is 0
-  #   arrow.size: Size of arrow.  Default is 1 
+  #   arrow.length: Length of arrow.  Default is 1 
   #   colour: Colour of arrow.  Default is 'black' 
   #   lwd: Line width of arrow.  Default is 1
   angle = angle - angle.north + 6.28/4
@@ -90,7 +91,7 @@ plotArrow <- function(origin.x, origin.y, angle, unit='radian', angle.north=0, a
   } else if (unit != 'radian') {
     stop('Only support degree and radian.')
   }
-  arrows(x=origin.x, y=origin.y, x1=origin.x+arrow.size*cos(angle), y1=origin.y+arrow.size*sin(angle), length=arrow.size/2, col=colour, lwd=lwd)
+  arrows(x=origin.x, y=origin.y, x1=origin.x+arrow.length*cos(angle), y1=origin.y+arrow.length*sin(angle), length=0.1, col=colour, lwd=lwd)
 }
 
 plotLightPath <- function(x, y, col = 'gray', main = '', new.plot = T, xlim = NULL, ylim = NULL) {
@@ -117,6 +118,7 @@ examples <- function() {
     
     #bubbleSize example
     plot(p$x, p$y, xlim=c(0, 4), ylim=c(0, 3), cex=bubbleSize(p$value, min.size = 1, max.size = 4, max.size.x = 10))
+    text(p$x, p$y+0.2, p$value)
     
     # plotGrid example
     plotGrid(1,2)
@@ -124,7 +126,10 @@ examples <- function() {
     plotPath(p$x, p$y, size = 3, main = "Some path again in red", col = 'red')
     
     #plotArrow example
-    plotArrow(p$x, p$y, p$direction, arrow.size = 0.2)
-    text(p$x, p$y+0.2, p$value)
+    plot(c(), c(), xlim=c(0, 4), ylim=c(0, 3))
+    plotArrow(p$x, p$y, p$direction, arrow.length = 0.2)    
+    
+    plot(c(), c(), xlim=c(0, 40), ylim=c(-5, 30))
+    plotArrow(p$x, p$y, p$direction, arrow.length = 5)
     
 }
