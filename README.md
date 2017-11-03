@@ -10,8 +10,8 @@ Plotting a 2D path
 Plotting a 2D path with arrows to indicate headings
 <img src="https://user-images.githubusercontent.com/13400791/28256446-f533fa50-6b05-11e7-8bde-8169efaa1614.png" width="600px"/>
 
-Plot bubbles with size scaled to provided values
-<img src="https://user-images.githubusercontent.com/13400791/28256508-80268d3a-6b06-11e7-9cc8-16a50dbd8221.png" width="600px"/>
+Plot bubbles with size scaled according to provided values
+<img src="https://user-images.githubusercontent.com/13400791/28256561-fcb1b71c-6b06-11e7-807a-6be035e6dfb1.png" width="600px"/>
 
 
 - **dataUtils.R** For manipulating data stored in data frames or data tables (e.g. For each event in the sorted dataset, retrieve the previous time value in the same group to work out the time difference since the last event)
