@@ -107,6 +107,68 @@ plotLightPath <- function(x, y, col = 'gray', main = '', new.plot = T, xlim = NU
   plotPath(x, y, col=col, size=0, main = main, new.plot=new.plot, xlim=xlim, ylim=ylim, arrows=F, lwd=0.3)
 }
 
+colourGradient <- function(values, colours=c("red","yellow","green"), minV=NULL, maxV=NULL, colours.num=100, use.quartiles=F) {
+  # Return the colours representing the given values using the specified colour palette
+  # Args:
+  #   values: Vector of values
+  #   colours: Vector containing Y coordinate of points
+  #   minV: Minimum value in the scale
+  #   maxV: Maximum value in the scale
+  #   colours.num: Number of unique colours in the final palette
+  #   use.quartiles: Use quartiles as extremes of scale
+  if (use.quartiles) {
+    my.stats = summary(values)
+    this.min = my.stats[[2]] # 1st Qu.
+    this.max = my.stats[[5]] # 3rd Qu.
+  } else {
+    this.min = min(values, na.rm=T)
+    this.max = max(values, na.rm=T)
+  }
+  if (!is.null(minV)) {
+    if (this.min < minV) {
+      this.min = minV
+    }
+  }
+  if (!is.null(maxV)) {
+    if (this.max > maxV){
+      this.max = maxV
+    }
+  }
+  print(this.min)
+  print(this.max)
+  return(colorRampPalette(colours) (colours.num) [ findInterval(values, seq(this.min,this.max, length.out=colours.num)) ] )
+}
+
+library(ggplot2)
+library(Rmisc)
+
+histPlotCategoricalMultilclass <- function(df, var.column, class.column) {
+  return (ggplot(df, aes_string(x=var.column, group=class.column)) + geom_bar(aes(y=..prop.., fill=(..x..)), stat='count') + 
+    facet_grid(as.formula(paste('~',class.column))) + scale_y_continuous(labels = scales::percent))
+}
+
+plotDensityMutlivariate <- function(df, columns, class.column) {
+  this.plots = list()
+  col.n = 5
+  row.n = round(length(columns) / col.n)
+  left.col.first.i = (col.n-1)*row.n + 1
+  i = 1
+  for (c in columns) {
+      print(c)
+    if (sapply(df, is.factor)[c]) {
+      # Percentage bar
+      this.plots[[i]] = histPlotCategoricalMultilclass(df, c, class.column) + theme(legend.position="none")
+    } else {
+      this.plots[[i]] = ggplot(df, aes_string(x=c, fill=class.column)) + geom_density(alpha=1/3)
+      # if (i < left.col.first.i) {
+      #   this.plots[[i]] = this.plots[[i]] + theme(legend.position="none")
+      # }
+    }
+    i = i + 1
+  }
+  multiplot(plotlist = this.plots, cols=col.n)
+}
+
 examples <- function() {
     p <- data.frame(x = c(1,2,3), y = c(1,2,1), direction=c(0, 3.14, 4.71), value=c(1, 5, 1000))
 
@@ -131,5 +193,10 @@ examples <- function() {
     
     plot(c(), c(), xlim=c(0, 40), ylim=c(-5, 30))
     plotArrow(p$x, p$y, p$direction, arrow.length = 5)
+    
+    #colourGradient
+    values = c(1, 1, 2, 3, 5, 7, 100)
+    plot(p$x, p$y, col=colourGradient(values), xlim = rangePadded(p$x), ylim = rangePadded(p$y), cex=5)
+    plot(p$x, p$y, col=colourGradient(values, use.quartiles = T), xlim = rangePadded(p$x), ylim = rangePadded(p$y), cex=5)
     
 }

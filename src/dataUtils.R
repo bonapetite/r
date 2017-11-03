@@ -53,6 +53,55 @@ changeTimeZone <- function(time, original.timezone, target.timezone) {
   return (as.POSIXct(format(as.POSIXct(time, tz=original.timezone), tz=target.timezone, usetz = T), tz=target.timezone))
 }
 
+showProgress <- function(total, current, n, progress.message='Processed %?%.') {
+  # Display a progress message for every nth item processed
+  # Args:
+  #   total: Total number of items
+  #   current: Current item index
+  #   n: Show message for every nth item processed
+  #   progress.message: Message to display.  The message should include the expression %?% which will be 
+  #   replaced by the number of items processed.  Default message is 'Processed %?%.'
+  if (current%%n == 0) {
+    require(stringr)
+    text = paste(current, '/', total, '(', round(current/total, 2), '%)')
+    print(str_replace(text, '%?%', text))
+  }
+}
+
+scaleToRange <- function(values, min, max) {
+  values.range = range(values, na.rm = T)
+  sf = (max-min)/(diff(values.range))
+  return ((values-values.range[1])*sf+min)
+}
+
+processParallelForeach <- function(myfunction) {
+  # Based on https://www.r-bloggers.com/how-to-go-parallel-in-r-basics-tips/
+  if (getRversion() < 2.14) {
+    stop('Requires R version 2.15 or higher')
+  }
+  require(parallel)
+  require(foreach)
+  
+  no_cores <- detectCores() - 1
+  cl<-makeCluster(no_cores)
+  registerDoParallel(cl)
+  stopImplicitCluster()
+  
+  split = detectCores()
+  eachStart = 25
+  # set up iterators
+  iters = iter(rep(eachStart, split))
+  comb = function(res1, res2) {
+    if(res1$tot.withinss < res2$tot.withinss) res1 else res2
+  }
+  
+  cl = makeCluster(split)
+  registerDoParallel(cl)
+  result = foreach(nstart=iters, .combine="comb", .packages="MASS") %dopar%
+    kmeans(Boston, 4, nstart=nstart)
+  stopCluster(cl)
+}
+
 examples <- function() {
   
   # getPrevValuesByGroup example
@@ -86,5 +135,9 @@ examples <- function() {
   # john    30
   # john    40
   # amy    50
+  
+  scaleToRange(person.data$value, 100, 600)
+  scaleToRange(c(NA_real_, NA_real_, 1, 2, 3, 4, 5, 6), 100, 600)
+  # 100 200 300 400 500 600
 }
 
