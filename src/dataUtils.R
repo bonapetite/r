@@ -102,6 +102,10 @@ processParallelForeach <- function(myfunction) {
   stopCluster(cl)
 }
 
+percent.string <- function(count, total) {
+  return (paste(count, '/', total, ' (', round(count/total, 2), '%)', sep=''))
+}
+
 examples <- function() {
   
   # getPrevValuesByGroup example
