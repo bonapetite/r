@@ -103,7 +103,7 @@ processParallelForeach <- function(myfunction) {
 }
 
 percent.string <- function(count, total) {
-  return (paste(count, '/', total, ' (', round(count/total, 2), '%)', sep=''))
+  return (paste(count, '/', total, ' (', round(count/total*100, 2), '%)', sep=''))
 }
 
 examples <- function() {
