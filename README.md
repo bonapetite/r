@@ -3,19 +3,23 @@ Collection of useful R codes
 
 This repository contains some handy R codes I have written.  These are organised into individual R scripts based on functionalities:
 
-- **plotUtils.R** Functions related to plotting graphs that use the built-in graphics package for plotting.  
+- **plotUtils.R** Functions related to plotting graphs (Using native *graphics* package for plotting).
+
+### Examples
 Plotting a 2D path
-<img src="https://user-images.githubusercontent.com/13400791/28256450-fd981870-6b05-11e7-96f7-79c581fd2e4f.png" width="600px"/>
+![Plot path](assets/plotPath.png?raw=true)
 
 Plotting a 2D path with arrows to indicate headings
-<img src="https://user-images.githubusercontent.com/13400791/28256446-f533fa50-6b05-11e7-8bde-8169efaa1614.png" width="600px"/>
+![Plot path with headings](assets/plotPathWithHeadings.png?raw=true)
 
 Plot bubbles with size scaled according to provided values
-<img src="https://user-images.githubusercontent.com/13400791/28256561-fcb1b71c-6b06-11e7-807a-6be035e6dfb1.png" width="600px"/>
+![Plot bubbles](assets/plotBubbles.png?raw=true)
+
 
 - **fileUtils.R** Relating to File IO
 
 - **dataUtils.R** For transforming and displaying data
+### Examples
 ```
 person.data = data.frame(name = c('amy', 'amy', 'john', 'john', 'amy', 'john'), value = c(10,20,30,40,50,60))
   person.data$prev = getPrevValuesByGroup(person.data$value, person.data$name)
