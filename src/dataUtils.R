@@ -25,6 +25,7 @@ interpolate <- function(x, max.gap=NULL) {
   # Args:
   #   x: Vector of values
   #   max.gap: Leave as NA if gap between data is larger than max.gap
+  # Returns the array of value with missing values populated if applicable
   require(zoo)
   if (!is.null(max.gap)) {
     return (na.approx(x, maxgap=max.gap)) 
@@ -50,10 +51,23 @@ changeTimeZone <- function(time, original.timezone, target.timezone) {
   #   time: Time in string format
   #   original.timezone: Timezone of the provided time
   #   target.timezone: Target timezone
+  # Returns the value in the target time zone
   return (as.POSIXct(format(as.POSIXct(time, tz=original.timezone), tz=target.timezone, usetz = T), tz=target.timezone))
 }
 
-showProgress <- function(total, current, n, progress.message='Processed %?%.') {
+percent.string <- function(count, total) {
+  # Generate a string showing the current count, total and percentage rounded to 2d.p.
+  # e.g. percent.string(1, 10) -> '1/10 (10%)'
+  #      percent.string(1, 1000) -> '1/1000 (0.01%)'
+  # Args:
+  #   count: Current count
+  #   total: Total 
+  # Returns the generated string
+  return (paste(count, '/', total, ' (', round(count/total*100, 2), '%)', sep=''))
+}
+
+showProgress <- function(total, current, n, progress.message='Processed %?%') {
+  require(stringr)
   # Display a progress message for every nth item processed
   # Args:
   #   total: Total number of items
@@ -62,53 +76,57 @@ showProgress <- function(total, current, n, progress.message='Processed %?%.') {
   #   progress.message: Message to display.  The message should include the expression %?% which will be 
   #   replaced by the number of items processed.  Default message is 'Processed %?%.'
   if (current%%n == 0) {
-    require(stringr)
-    text = paste(current, '/', total, '(', round(current/total, 2), '%)')
-    print(str_replace(text, '%?%', text))
+    print(str_replace(text, '%?%', percent.string(current, total)))
   }
 }
 
 scaleToRange <- function(values, min, max) {
+  # Scale the values to the specified range 
+  # Args:
+  #   values: Vector of values
+  #   min: Minimum of the targeted range
+  #   max: Maximum of the targeted range
+  # Returns a vector of the scaled value
   values.range = range(values, na.rm = T)
+  if (diff(values.range) == 0) {
+    stop(paste('Cannot scale if value is constant at ', min(values, na.rm = T), sep=''))
+  }
   sf = (max-min)/(diff(values.range))
   return ((values-values.range[1])*sf+min)
 }
 
-processParallelForeach <- function(myfunction) {
-  # Based on https://www.r-bloggers.com/how-to-go-parallel-in-r-basics-tips/
-  if (getRversion() < 2.14) {
-    stop('Requires R version 2.15 or higher')
+group.by.count.as.percent.string <- function(values, all.values=NULL) {
+  if (length(values) == 0) {
+    return ('')
   }
-  require(parallel)
-  require(foreach)
-  
-  no_cores <- detectCores() - 1
-  cl<-makeCluster(no_cores)
-  registerDoParallel(cl)
-  stopImplicitCluster()
-  
-  split = detectCores()
-  eachStart = 25
-  # set up iterators
-  iters = iter(rep(eachStart, split))
-  comb = function(res1, res2) {
-    if(res1$tot.withinss < res2$tot.withinss) res1 else res2
+  # Generate a string showing the frequency of values as a percentage rounded to 2d.p.
+  # Examples are given in example()
+  # Args:
+  #   values: Vector of values
+  #   all.values: Percent string should show percent of these values.  Default to NULL.  
+  # Returns the generated string
+  dd = data.frame(table(values))
+  dd$values = as.character(dd$values)
+  if (is.null(all.values)) {
+    all.values = unique(dd$values)
+    all.values = all.values[order(all.values)]
   }
-  
-  cl = makeCluster(split)
-  registerDoParallel(cl)
-  result = foreach(nstart=iters, .combine="comb", .packages="MASS") %dopar%
-    kmeans(Boston, 4, nstart=nstart)
-  stopCluster(cl)
-}
-
-percent.string <- function(count, total) {
-  return (paste(count, '/', total, ' (', round(count/total*100, 2), '%)', sep=''))
+  all.values = as.character(all.values)
+  merged = merge(dd, data.frame(values=all.values), by='values', all.y=T)
+  if (sum(is.na(merged$Freq)) > 0) {
+    merged[is.na(merged$Freq), ]$Freq = 0
+  }
+  merged$percent = round(merged$Freq/sum(merged$Freq)*100, 2)
+  percent.string = ""
+  for (a in all.values) {
+    percent.string = paste(percent.string, paste(merged[merged$values == a, ]$percent, "% ", a, ',', sep=''), sep='')
+  }
+  percent.string = substr(percent.string, 1, nchar(percent.string) - 1)
+  return (percent.string)
 }
 
 examples <- function() {
   
-  # getPrevValuesByGroup example
   person.data = data.frame(name = c('amy', 'amy', 'john', 'john', 'amy', 'john'), value = c(10,20,30,40,50,60))
   person.data$prev = getPrevValuesByGroup(person.data$value, person.data$name)
   print(person.data)
@@ -141,7 +159,23 @@ examples <- function() {
   # amy    50
   
   scaleToRange(person.data$value, 100, 600)
-  scaleToRange(c(NA_real_, NA_real_, 1, 2, 3, 4, 5, 6), 100, 600)
   # 100 200 300 400 500 600
+  scaleToRange(c(NA_real_, NA_real_, 1, 2, 3, 4, 5, 6), 100, 600)
+  # NA  NA 100 200 300 400 500 600
+  
+  percent.string(1, 100)
+  # "1/100 (1%)"
+  percent.string(1, 1000)
+  # "1/1000 (0.1
+  
+  showProgress(1, 100)
+  # "Processed 1/100 (1%)"
+  showProgress(1, 1000)
+  #"Processed 1/1000 (0.1%)"
+  
+  group.by.count.as.percent.string(values = c('A', 'A', 'B'))
+  # "66.67% A,33.33% B"
+  group.by.count.as.percent.string(values = c('A', 'A', 'B'), all.values = c('A', 'B', 'C'))
+  # "66.67% A,33.33% B,0% C"
 }
 
